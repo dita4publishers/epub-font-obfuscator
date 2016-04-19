@@ -4,11 +4,9 @@
  */
 package org.dita4publishers.epub.fontobfuscator;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,13 +16,8 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
-import java.util.ArrayList;
-import java.util.Enumeration;
-
-import javax.xml.transform.Source;
 
 import org.apache.commons.io.FilenameUtils;
-import org.xml.sax.InputSource;
 
 /**
  * Application class for applying EPUB3 font obfuscation to font
@@ -61,7 +54,8 @@ public class FontObfuscator {
 		try {
 			FileInputStream inStream = new FileInputStream(fontFile);
 			FileOutputStream outStream = new FileOutputStream(resultFontFile);
-			FontObfuscator.obfuscateFont(inStream, outStream, opfUID);
+			String obfuscationKey = makeObfuscationKey(opfUID);
+			FontObfuscator.obfuscateFont(inStream, outStream, obfuscationKey);
 			System.out.println("Font obfuscated.");			
 		} catch (Exception e) {
 			System.err.println(e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -107,10 +101,9 @@ public class FontObfuscator {
 	 * http://www.openebook.org/doc_library/informationaldocs/FontManglingSpec.html
 	 **/
 
-	public static void obfuscateFont(InputStream in, OutputStream out, String uid) throws IOException 
+	public static void obfuscateFont(InputStream in, OutputStream out, String obfuscationKey) throws IOException 
 	{
-		String obfuscationKey = makeObfuscationKey(uid);
-		byte[] mask = makeXORMask(uid);
+		byte[] mask = makeXORMask(obfuscationKey);
 		try {
 			byte[] buffer = new byte[4096];
 			int len;
