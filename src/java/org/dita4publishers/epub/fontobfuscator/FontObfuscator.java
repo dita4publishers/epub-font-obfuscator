@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.xml.transform.Source;
@@ -56,10 +57,6 @@ public class FontObfuscator {
 		String baseName = FilenameUtils.getBaseName(fontFile.getName());
 		String ext = FilenameUtils.getExtension(fontFile.getName());
 		File resultFontFile = new File(fontFile.getParentFile(), baseName + "_obfuscated." +  ext);
-		if (!resultFontFile.canWrite()) {
-			System.err.println("Cannot write to result font file \"" + resultFontFile.getAbsolutePath() + "\"");
-			System.exit(1);
-		}
 		System.out.println("Obfuscating font " + fontFilePath + "...");
 		try {
 			FileInputStream inStream = new FileInputStream(fontFile);
@@ -112,6 +109,7 @@ public class FontObfuscator {
 
 	public static void obfuscateFont(InputStream in, OutputStream out, String uid) throws IOException 
 	{
+		String obfuscationKey = makeObfuscationKey(uid);
 		byte[] mask = makeXORMask(uid);
 		try {
 			byte[] buffer = new byte[4096];
@@ -131,5 +129,29 @@ public class FontObfuscator {
 			e.printStackTrace();
 		}
 		out.close();
+	}
+
+
+	/**
+	 * Create an EPUB font obfuscation key from one or more strings according to the rules
+	 * defined in the EPUB 3 spec, 4.3 Generating the Obfuscation Key 
+	 * (http://www.idpf.org/epub/30/spec/epub30-ocf.html#fobfus-keygen)
+	 * 
+	 * Squeezes out any whitespace in each UID and then concatenates the result
+	 * using single space characters as the separator.
+	 * 
+	 * @param baseString The string to convert into a key.
+	 * @return obfuscation key string
+	 */
+	public static String makeObfuscationKey(String... UIDs) {
+		StringBuilder buf = new StringBuilder();
+		String sep = "";
+		for (String uid : UIDs) {
+			String keyPart = uid.replaceAll("[\\s\\t\\n\\r]", "");
+			buf.append(sep).append(keyPart);
+			sep = " ";
+		}
+		
+		return buf.toString();		
 	}
 }
