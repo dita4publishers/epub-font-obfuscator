@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." name="epub-font-obfuscator">
+  
+  <tstamp>
+  </tstamp>
+  
+  <property name="srcdir" location="${basedir}/src/java" />
+  <property name="testdir" location="${basedir}/test/java"/>
+  <property name="dist" location="${basedir}/dist"/>
+  <property name="target.home" location="${basedir}/target"/>
+  <property name="classes.home" location="${target.home}/classes"/>
+  <property name="lib.home" location="${basedir}/lib"/>
+  
+  <path id="classpath.base">
+    <pathelement path="${classes.home}"/>
+    <fileset dir="${lib.home}">
+        <include name="*.jar"/>
+    </fileset>
+  </path>
+
+  
+  <target name="init">
+    <tstamp/>
+  </target>
+  
+  <target name="compile" description="Compile the source">
+    <mkdir dir="${classes.home}"/>
+    <javac compiler="modern"
+      source="1.7"
+      target="1.7"
+      srcdir="${srcdir}"
+      destdir="${classes.home}">
+      <classpath refid="classpath.base"/>
+    </javac>    
+  </target>
+  
+  <target name="jar" depends="compile" description="Create the jar file">
+    <jar destfile="${dist}/epub-font-obfuscator.jar" >
+      <fileset dir="${classes.home}" >
+        <include name="**.*" />
+        <include name="**/**.*" />
+      </fileset>
+      <manifest>
+        <attribute name="Main-Class" value="org.dita4publishers.epub.fontobfuscator.FontObfuscator"/>
+      </manifest>
+    </jar>
+
+  </target>
+  
+  
+  
+</project>
