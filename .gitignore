@@ -1,5 +1,6 @@
 .settings/
 lib/
+test/java/resources/fonts/obfuscated/
 *_obfuscated.ttf
 *.class
 
