@@ -17,8 +17,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
-import org.apache.commons.io.FilenameUtils;
-
 /**
  * Application class for applying EPUB3 font obfuscation to font
  * files.
@@ -47,14 +45,16 @@ public class FontObfuscator {
 			System.err.println("Failed to find font file \"" + fontFile.getAbsolutePath() + "\"");
 			System.exit(1);
 		}
-		String baseName = FilenameUtils.getBaseName(fontFile.getName());
-		String ext = FilenameUtils.getExtension(fontFile.getName());
-		File resultFontFile = new File(fontFile.getParentFile(), baseName + "_obfuscated." +  ext);
-		System.out.println("Obfuscating font " + fontFilePath + "...");
+		File obfuscatedDir = new File(fontFile.getParentFile(), "obfuscated");
+		File resultFontFile = new File(obfuscatedDir, fontFile.getName());
+		System.out.println("Obfuscating font " + fontFilePath + " to " + resultFontFile.getAbsolutePath() + " ...");
+		
 		try {
+			obfuscatedDir.mkdirs();
 			FileInputStream inStream = new FileInputStream(fontFile);
 			FileOutputStream outStream = new FileOutputStream(resultFontFile);
 			String obfuscationKey = makeObfuscationKey(opfUID);
+			System.out.println("Using obfuscation key \"" + obfuscationKey + "\"");
 			FontObfuscator.obfuscateFont(inStream, outStream, obfuscationKey);
 			System.out.println("Font obfuscated.");			
 		} catch (Exception e) {
@@ -81,7 +81,7 @@ public class FontObfuscator {
 					new com.sun.crypto.provider.SunJCE());
 			MessageDigest sha = MessageDigest.getInstance("SHA-1");
 			String temp = opfUID.trim();
-			sha.update(temp.getBytes(), 0, temp.length());mask.write(sha.digest());
+			sha.update(temp.getBytes("UTF-8"), 0, temp.length());mask.write(sha.digest());
 		} catch (NoSuchAlgorithmException e) {
 			System.err.println("No such Algorithm (really, did I misspell SHA-1?");
 			System.err.println(e.toString());return null;
@@ -112,7 +112,7 @@ public class FontObfuscator {
 				if( first && mask != null ) {
 					first = false;
 					for( int i = 0 ; i < 1040 ; i++ ) {
-						buffer[i] = (byte)(buffer[i] ^ mask[i%mask.length]);
+						buffer[i] = (byte)(buffer[i] ^ mask[i % mask.length]);
 					}
 				}
 				out.write(buffer, 0, len);
