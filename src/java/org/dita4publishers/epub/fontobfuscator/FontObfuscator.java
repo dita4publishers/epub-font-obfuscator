@@ -17,6 +17,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Application class for applying EPUB3 font obfuscation to font
  * files.
@@ -36,6 +38,8 @@ public class FontObfuscator {
 					+ "from the EPUB's OPF file.");
 			System.err.println("\nIf destination file is not specified, the obfuscated font will be in a \n"
 					+ "directory named \"obfuscated\" under the input font's directory.\n");
+			System.err.println("\nIf destination file is a directory it will create a file with the same"
+					+ "name as the input font file.\n");
 			System.exit(1);
 		}
 		String opfUID = args[0];
@@ -54,13 +58,27 @@ public class FontObfuscator {
 
 		if (args.length > 2) {
 			String destinationFilePath = args[2];
+			String ext = FilenameUtils.getExtension(destinationFilePath);
 			resultFontFile = new File(destinationFilePath);
 			if (!resultFontFile.isAbsolute()) {
 				resultFontFile = new File(pwdDir, destinationFilePath);
 			}
+			/**
+			 * If the destination file path does not appear to specify a font
+			 * file, then use the input font filename.
+			 * 
+			 * Note that this can result in the input file being updated in place.
+			 */
+			if (ext == null || "".equals(ext)) {
+				resultFontFile = new File(resultFontFile, fontFile.getName());
+			}
 		} else {
 			File obfuscatedDir = new File(fontFile.getParentFile(), "obfuscated");
 			resultFontFile = new File(obfuscatedDir, fontFile.getName());
+		}
+		if (resultFontFile.getAbsolutePath().equals(fontFile.getAbsolutePath())) {
+			System.err.println("[ERROR] Input and destination font file are the same. Cannot continue.");
+			System.exit(1);
 		}
 
 		System.out.println("Obfuscating font " + fontFilePath + " ...");

@@ -34,14 +34,27 @@
     </javac>    
   </target>
   
+  
+  <pathconvert property="mf.classpath" pathsep=" ">
+    <path refid="classpath.base"/>
+    <mapper>
+      <chainedmapper>
+        <flattenmapper/>
+        <globmapper from="*.jar" to="lib/*.jar"/>
+      </chainedmapper>
+    </mapper>
+  </pathconvert>  
+  
   <target name="jar" depends="compile" description="Create the jar file">
     <jar destfile="${dist}/epub-font-obfuscator.jar" >
+      <zipgroupfileset dir="${lib.home}" includes="*.jar"/>
       <fileset dir="${classes.home}" >
         <include name="**.*" />
         <include name="**/**.*" />
       </fileset>
       <manifest>
         <attribute name="Main-Class" value="org.dita4publishers.epub.fontobfuscator.FontObfuscator"/>
+        <attribute name="Class-Path" value="${mf.classpath}"/>
       </manifest>
     </jar>
 
