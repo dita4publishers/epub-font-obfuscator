@@ -30,13 +30,17 @@ public class FontObfuscator {
 
 	public static void main(String[] args) {
 		if (args.length < 2) {
-			System.err.println("Usage: ");
-			System.err.println("");
-			System.err.println("FontObfuscator \"{EPUB Unique ID}\" \"{font file}\"" );
+			System.err.println("\nUsage: \n");
+			System.err.println("FontObfuscator \"{EPUB Unique ID}\" \"{font file}\" [{destination file}]" );
+			System.err.println("\nThe EPUB Unique ID must be the value of the dc:identifier element\n"
+					+ "from the EPUB's OPF file.");
+			System.err.println("\nIf destination file is not specified, the obfuscated font will be in a \n"
+					+ "directory named \"obfuscated\" under the input font's directory.\n");
 			System.exit(1);
 		}
 		String opfUID = args[0];
 		String fontFilePath = args[1];
+		
 		Path pwd = Paths.get("");
 		System.out.println("pwd=\"" + pwd.toAbsolutePath() + "\"");
 		File pwdDir = pwd.toAbsolutePath().toFile();
@@ -45,18 +49,30 @@ public class FontObfuscator {
 			System.err.println("Failed to find font file \"" + fontFile.getAbsolutePath() + "\"");
 			System.exit(1);
 		}
-		File obfuscatedDir = new File(fontFile.getParentFile(), "obfuscated");
-		File resultFontFile = new File(obfuscatedDir, fontFile.getName());
-		System.out.println("Obfuscating font " + fontFilePath + " to " + resultFontFile.getAbsolutePath() + " ...");
+
+		File resultFontFile = null;
+
+		if (args.length > 2) {
+			String destinationFilePath = args[2];
+			resultFontFile = new File(destinationFilePath);
+			if (!resultFontFile.isAbsolute()) {
+				resultFontFile = new File(pwdDir, destinationFilePath);
+			}
+		} else {
+			File obfuscatedDir = new File(fontFile.getParentFile(), "obfuscated");
+			resultFontFile = new File(obfuscatedDir, fontFile.getName());
+		}
+
+		System.out.println("Obfuscating font " + fontFilePath + " ...");
 		
 		try {
-			obfuscatedDir.mkdirs();
+			resultFontFile.getParentFile().mkdirs();
 			FileInputStream inStream = new FileInputStream(fontFile);
 			FileOutputStream outStream = new FileOutputStream(resultFontFile);
 			String obfuscationKey = makeObfuscationKey(opfUID);
 			System.out.println("Using obfuscation key \"" + obfuscationKey + "\"");
 			FontObfuscator.obfuscateFont(inStream, outStream, obfuscationKey);
-			System.out.println("Font obfuscated.");			
+			System.out.println("Font obfuscated to " + resultFontFile.getAbsolutePath());			
 		} catch (Exception e) {
 			System.err.println(e.getClass().getSimpleName() + ": " + e.getMessage());
 			System.exit(1);
