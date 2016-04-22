@@ -32,3 +32,5 @@ The arguments are:
 * Result directory or file: The directory or file to write the obfuscated font to. If not specified, the obfuscated will be written to a directory named "obfuscated" under the directory containing the input font. Note that you cannot update the input font in place. If you specify a directory name the result has the same name as in the input font. If you specify a font name then that name is used for the result font.
 
 Note that the obfuscation key just match what is in the EPUB that will contain the obfuscated font as EPUB readers use the EPUB identifier in order to unobfuscate any obfuscated fonts embedded in the EPUB. It also means that you must create new obfuscated versions of a font for each EPUB it is included in.
+
+NOTE: You can unobfuscate a font by applying the obfuscator to it with the same key used to obfuscate it originally.
