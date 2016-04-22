@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -47,13 +49,40 @@ public class FontObfuscator {
 		
 		Path pwd = Paths.get("");
 		System.out.println("pwd=\"" + pwd.toAbsolutePath() + "\"");
-		File pwdDir = pwd.toAbsolutePath().toFile();
-		File fontFile = new File(pwdDir,fontFilePath);
-		if (!fontFile.exists()) {
-			System.err.println("Failed to find font file \"" + fontFile.getAbsolutePath() + "\"");
-			System.exit(1);
+		File pwdDir = pwd.toAbsolutePath().toFile();	
+		
+		InputStream inStream = null;
+		File fontFile = null;
+		if (fontFilePath.matches("^\\w+:/.+")) {
+			
+			URL inURL;
+			try {
+				inURL = new URL(fontFilePath);
+				try {
+					inStream = inURL.openStream();
+				} catch (IOException e) {
+					System.err.println(e.getClass().getSimpleName() + " opening URL \"" + fontFilePath + "\":");
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+			} catch (MalformedURLException e) {
+				System.err.println("- [DEBUG] font file path \"" + fontFilePath + "\""
+						+ "looks like an absolute URI but is not a valid URL:"
+						+ e.getMessage());
+			}
+		}
+		if (inStream == null) {
+			fontFile = new File(fontFilePath);
+			if (!fontFile.isAbsolute()) {
+				fontFile = new File(pwdDir, fontFilePath);
+			}
+			if (!fontFile.exists()) {
+				System.err.println("Failed to find font file \"" + fontFile.getAbsolutePath() + "\"");
+				System.exit(1);
+			}
 		}
 
+		String fontFilename = FilenameUtils.getName(fontFilePath);
 		File resultFontFile = null;
 
 		if (args.length > 2) {
@@ -70,13 +99,13 @@ public class FontObfuscator {
 			 * Note that this can result in the input file being updated in place.
 			 */
 			if (ext == null || "".equals(ext)) {
-				resultFontFile = new File(resultFontFile, fontFile.getName());
+				resultFontFile = new File(resultFontFile, fontFilename);
 			}
 		} else {
 			File obfuscatedDir = new File(fontFile.getParentFile(), "obfuscated");
-			resultFontFile = new File(obfuscatedDir, fontFile.getName());
+			resultFontFile = new File(obfuscatedDir, fontFilename);
 		}
-		if (resultFontFile.getAbsolutePath().equals(fontFile.getAbsolutePath())) {
+		if (fontFile != null && resultFontFile.getAbsolutePath().equals(fontFile.getAbsolutePath())) {
 			System.err.println("[ERROR] Input and destination font file are the same. Cannot continue.");
 			System.exit(1);
 		}
@@ -84,8 +113,11 @@ public class FontObfuscator {
 		System.out.println("Obfuscating font " + fontFilePath + " ...");
 		
 		try {
+			if (inStream == null) {
+				// fontFile must be good at this point or we would have bailed earlier.
+				inStream = new FileInputStream(fontFile);
+			}
 			resultFontFile.getParentFile().mkdirs();
-			FileInputStream inStream = new FileInputStream(fontFile);
 			FileOutputStream outStream = new FileOutputStream(resultFontFile);
 			String obfuscationKey = makeObfuscationKey(opfUID);
 			System.out.println("Using obfuscation key \"" + obfuscationKey + "\"");
