@@ -27,10 +27,10 @@ java -jar epub-font-obfuscator.jar "some-epub-id" "fonts/myfont.ttf" "fonts/myfo
 
 The arguments are:
 
-* EPUB identifier (obfuscation key): This must be the value of the dc:identifier element that is referenced by the @unique-identifier attribute on the package element in the EPUB's OPF file, e.g. `<dc:identifier id="bookid">PXxxxxxxxx-XXX-X</dc:identifier>`
+* EPUB identifier (obfuscation key): This must be the value of the dc:identifier element that is referenced by the @unique-identifier attribute on the package element in the EPUB's OPF file, e.g. `<dc:identifier id="bookid">some-epub-id</dc:identifier>`, where the key is "some-epub-id" in this example.
 * Input font file: This is the font file to be obfuscated. All font types are supported (the obfuscation mechanism doesn't actually care what the font details are, it just modifies the first 1000 bytes).
 * Result directory or file: The directory or file to write the obfuscated font to. If not specified, the obfuscated will be written to a directory named "obfuscated" under the directory containing the input font. Note that you cannot update the input font in place. If you specify a directory name the result has the same name as in the input font. If you specify a font name then that name is used for the result font.
 
-Note that the obfuscation key just match what is in the EPUB that will contain the obfuscated font as EPUB readers use the EPUB identifier in order to unobfuscate any obfuscated fonts embedded in the EPUB. It also means that you must create new obfuscated versions of a font for each EPUB it is included in.
+Note that the obfuscation key must match what is in the EPUB that will contain the obfuscated font as EPUB readers use the EPUB identifier in order to unobfuscate any obfuscated fonts embedded in the EPUB. It also means that you must create new obfuscated versions of a font for each EPUB it is included in.
 
 NOTE: You can unobfuscate a font by applying the obfuscator to it with the same key used to obfuscate it originally.
